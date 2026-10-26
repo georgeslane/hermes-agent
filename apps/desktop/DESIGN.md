@@ -92,11 +92,18 @@ Don't add per-overlay `shadow-[…]` or `border-(--ui-stroke-secondary)`
 one-offs; if elevation needs to change, change the token.
 
 Menus and popovers use their own shared `shadow-md` +
-`--ui-stroke-secondary` primitive treatment. Every floating list —
+`--ui-stroke-secondary` primitive treatment: a vibrant surface (88% elevated
+fill over a wide saturating blur, like an NSMenu), `rounded-xl`, 5px inset
+padding. Every floating list —
 `DropdownMenu`, `Select`, and Popover + cmdk pickers
 (`<PopoverContent variant="menu">` + `<Command variant="menu">`) — paints
 through `src/components/ui/menu.ts`, so a list reads the same wherever it
-opens. Typed fields with suggestions use `ComboboxInput`, never
+opens. The highlighted row is one unlayered rule in `styles.css` (Radix
+`:focus`/`[data-highlighted]`, an open sub-trigger, cmdk
+`[data-selected='true']`) painted from `--ui-menu-highlight-background` /
+`--ui-menu-highlight-foreground`; under an accent highlight (Cupertino) the
+whole row reverses, including key caps. Don't re-add per-menu highlight
+classes. Typed fields with suggestions use `ComboboxInput`, never
 `<input list>` + `<datalist>` (Chromium paints that as its own OS popup).
 
 Drag affordances may use tokenized
@@ -156,11 +163,23 @@ renderer and Electron's first window paint.
 | `--ui-bg-quaternary` | soft control fill (secondary button) |
 | `--ui-widget-surface-background` | fill for inline chat widgets (`WIDGET_SHELL_CLASS`) |
 | `--chrome-action-hover` | hover fill for quiet controls |
+| `--ui-menu-highlight-background / -foreground` | the highlighted row of every floating list |
+| `--ui-code-background` | fenced code slabs (`CodeCard`); must stay opaque |
+| `--ui-control-knob` | the `Switch` knob (white in both appearances) |
+| `--radius-control` / `--radius-menu-item` | Button + form-control corner (6px) / menu-row corner (5px) |
 | `--theme-primary`, `--ui-accent` | brand/accent |
 
 Never hardcode `border-gray-*`, `bg-white`, `text-black`, etc. The two tiles in
 `BrandMark` (white in light mode, `#0d1117` in dark) are the sanctioned literals
 (the mark needs a fixed backdrop).
+
+**Skins and the radius ladder.** `--radius-scalar` (0.6) scales every
+`rounded-{sm…4xl}` step onto the macOS rhythm (md 6px, xl ≈ 10px, 2xl ≈ 14px).
+Shape is global; color belongs to the skin. **Cupertino** is the default skin:
+AppKit seeds in `themes/presets.ts`, plus a `:root[data-hermes-theme='cupertino']`
+block in `styles.css` that derives fills and hairlines from the label color
+alone (the systemFill / separator ladder) instead of tinting them with the
+accent. Other skins keep their accent-mixed ladders.
 
 ## Buttons — one component
 
@@ -225,8 +244,9 @@ context-dependent (e.g. "Show" / "Hide"). Never hardcode combos; always use
 `useKeybindHint` or `TipKeybindLabel`.
 
 Notes:
-- Text buttons are square (no radius) and sized by padding + line-height (no
-  fixed heights). Only icon buttons carry the shared 4px radius.
+- Buttons are sized by padding + line-height (no fixed heights). Every box,
+  text or icon, wears `--radius-control` (6px, the AppKit push-button corner);
+  `default` adds a hairline top highlight and contact shadow.
 - SVGs inherit `size-3.5` (`size-3` at `xs`). Don't re-set icon size.
 - Polymorph with `asChild` when the button must render as a link/Slot.
 
@@ -254,14 +274,19 @@ blurred backdrop.
 ## Form controls
 
 - **`controlVariants`** (`src/components/ui/control.ts`) is the shared shape for
-  `Input` / `Textarea` / `SelectTrigger`. New text-entry controls compose it.
+  `Input` / `Textarea` / `SelectTrigger`: `--radius-control` corners, and on
+  focus the accent border plus a soft `--dt-ring` halo (the AppKit focus ring).
+  New text-entry controls compose it.
 - **`SearchField`** — borderless, underline-on-focus, auto-width. The only
   search input. Don't build boxed search bars; don't wrap it in a bordered tile.
   Empty lists hide their search field.
 - **`SegmentedControl`** — the choice control for small mutually-exclusive sets
   (color mode, tool-call display, usage period). Replaces radio piles and
-  pill rows.
+  pill rows. A tinted track with a raised `shadow-sm` pill (a lifted gray in
+  dark mode).
 - **`Switch`** (`size="xs"`) — bare, with `aria-label`. No bordered text wrapper.
+  The system switch: a borderless `--ui-bg-primary` track, accent when on,
+  under one `--ui-control-knob`.
 - **`FanMenu`** (`src/components/ui/fan-menu.tsx`) — one hub control that
   fans sibling toggles out on hover: `direction` `vertical` | `horizontal`
   (split around the hub) | `arc`. Discs are `Button` `floating` off /
@@ -303,6 +328,10 @@ focusing its composer.
   Search and saved field links resolve to the owning child before highlighting.
 - **Rows:** `ListRow` (settings `primitives.tsx`) for label/description/action
   rows. Flat, flush-left; no per-row indentation that fights flush headers.
+- **Section labels** are sentence case: small (11px) semibold in a muted label
+  color, as Finder and Mail head a source list (`SidebarPanelLabel`). No
+  uppercase + letter-spacing on headings, menu labels, or tabs; reserve caps
+  for badges, initials and brand moments (onboarding glyphs).
 - **No dividers between rows** unless the list genuinely needs them; prefer
   spacing. When you do need one, it's a single `--ui-stroke-tertiary` hairline.
 
@@ -472,6 +501,9 @@ from their root base tokens; do not multiply the global tokens or nest CSS zoom.
   + squircle backgrounds (`assets/nous-girl-*.svg` × `assets/backgrounds/`).
   It replaced scattered Sparkles glyphs in updates / onboarding / about. Use it
   for hero/brand moments; don't reintroduce decorative star/sparkle icons.
+- **`Wordmark`** (`src/components/chat/wordmark.tsx`) keeps the Collapse face on
+  every skin. Cupertino sets it in the label color and caps it at a headline
+  size (`--fit-max`) instead of spanning the column in the accent.
 
 ## Motion
 

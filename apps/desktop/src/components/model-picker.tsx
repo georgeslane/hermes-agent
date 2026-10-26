@@ -625,11 +625,7 @@ function UsageBar({ gauge, isCurrent }: { gauge: PlanUsageGauge; isCurrent?: boo
 
 /** Window plans: "Recommended" / "Other models" title inside a provider group (not selectable). */
 function ModelSectionLabel({ children }: { children: string }) {
-  return (
-    <div className="px-6 pb-1 pt-2 text-[0.62rem] font-medium uppercase tracking-wide text-muted-foreground">
-      {children}
-    </div>
-  )
+  return <div className="px-6 pb-1 pt-2 text-[0.6875rem] font-medium text-muted-foreground">{children}</div>
 }
 
 /** Window plans: Large (its own monthly limit) or Free (never runs out); other models carry no tag. */

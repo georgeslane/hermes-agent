@@ -22,7 +22,9 @@ interface SegmentedControlProps<T extends string> {
 /**
  * Grouped one-row toggle used for small mutually-exclusive choices
  * (color mode, tool-call display, usage period, etc.). Flat by design —
- * no per-option borders, just a tinted track with a raised active pill.
+ * no per-option borders, just a tinted track with a raised active pill, the
+ * AppKit segmented control: the pill is the lightest surface in light mode
+ * and a lifted gray in dark.
  */
 export function SegmentedControl<T extends string>({
   className,
@@ -35,7 +37,7 @@ export function SegmentedControl<T extends string>({
   return (
     <div
       className={cn(
-        'inline-grid w-fit grid-flow-col gap-0.5 rounded-[5px] bg-(--ui-bg-tertiary) p-0.5',
+        'inline-grid w-fit grid-flow-col gap-0.5 rounded-[0.4375rem] bg-(--ui-bg-tertiary) p-0.5',
         sizing === 'equal' ? 'auto-cols-fr' : 'auto-cols-max',
         disabled && 'opacity-50',
         className
@@ -48,8 +50,10 @@ export function SegmentedControl<T extends string>({
           <button
             aria-pressed={active}
             className={cn(
-              'flex items-center justify-center gap-1 rounded-[3px] px-2.5 py-0.5 text-[0.6875rem] font-medium transition-colors hover:transition-none disabled:cursor-default',
-              active ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+              'flex items-center justify-center gap-1 rounded-(--radius-menu-item) px-2.5 py-0.5 text-[0.6875rem] font-medium transition-colors hover:transition-none disabled:cursor-default',
+              active
+                ? 'bg-background text-foreground shadow-sm dark:bg-[color-mix(in_srgb,var(--ui-base)_20%,transparent)]'
+                : 'text-muted-foreground hover:text-foreground'
             )}
             disabled={disabled}
             key={id}

@@ -230,9 +230,7 @@ export function MaintenancePanel() {
 
         {share && Object.keys(share.urls).length > 0 && (
           <div className="mt-2 rounded-lg border border-(--ui-stroke-tertiary) bg-(--ui-bg-quinary) p-3">
-            <div className="mb-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-              {mm.debugShareLinks}
-            </div>
+            <div className="mb-1.5 text-[0.68rem] font-semibold text-muted-foreground">{mm.debugShareLinks}</div>
             {Object.entries(share.urls).map(([key, url]) => (
               <div className="flex items-center justify-between gap-2 py-1" key={key}>
                 <span className="min-w-0 truncate font-mono text-[0.7rem]">
@@ -255,7 +253,7 @@ export function MaintenancePanel() {
 
         {actionStatus && (
           <div className="mt-2">
-            <div className="mb-1.5 flex items-center gap-2 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+            <div className="mb-1.5 flex items-center gap-2 text-[0.68rem] font-semibold text-muted-foreground">
               {mm.viewLog}
               {actionStatus.running && <span className="normal-case tracking-normal">{mm.running}</span>}
             </div>
@@ -350,11 +348,7 @@ export function MaintenancePanel() {
 }
 
 function SectionLabel({ children }: { children: string }) {
-  return (
-    <div className="mb-1.5 text-[0.625rem] font-medium uppercase tracking-[0.08em] text-(--ui-text-tertiary)">
-      {children}
-    </div>
-  )
+  return <div className="mb-1.5 text-[0.6875rem] font-medium text-(--ui-text-tertiary)">{children}</div>
 }
 
 function OpRow({

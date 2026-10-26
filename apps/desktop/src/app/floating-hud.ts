@@ -26,11 +26,11 @@ export const HUD_TEXT = 'text-xs'
 // don't feel chunky; overrides the shadcn `CommandItem` default (`px-2 py-1.5`).
 export const HUD_ITEM = 'gap-2 px-2 py-1'
 
-// Section headings styled like the sidebar panel labels: brand-tinted, uppercase,
-// tightly tracked — plain text, no sticky chrome bar. Targets the cmdk group
-// heading via the universal-descendant variant.
+// Section headings styled like the sidebar panel labels: sentence case, small
+// semibold, tertiary label color — plain text, no sticky chrome bar. Targets the
+// cmdk group heading via the universal-descendant variant.
 export const HUD_HEADING =
-  '**:[[cmdk-group-heading]]:static **:[[cmdk-group-heading]]:bg-transparent **:[[cmdk-group-heading]]:px-2.5 **:[[cmdk-group-heading]]:pb-1 **:[[cmdk-group-heading]]:pt-2.5 **:[[cmdk-group-heading]]:text-[0.64rem] **:[[cmdk-group-heading]]:font-semibold **:[[cmdk-group-heading]]:uppercase **:[[cmdk-group-heading]]:tracking-[0.16em] **:[[cmdk-group-heading]]:text-(--theme-primary)'
+  '**:[[cmdk-group-heading]]:static **:[[cmdk-group-heading]]:bg-transparent **:[[cmdk-group-heading]]:px-2.5 **:[[cmdk-group-heading]]:pb-1 **:[[cmdk-group-heading]]:pt-2.5 **:[[cmdk-group-heading]]:text-[0.6875rem] **:[[cmdk-group-heading]]:font-semibold **:[[cmdk-group-heading]]:text-(--ui-text-tertiary)'
 
 // A short note trailing a row's label — a version, a count, a live state. Sits
 // closer than the row's icon-to-label `gap-2` because it reads as a suffix of

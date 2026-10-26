@@ -172,26 +172,28 @@
   --color-sidebar: var(--sidebar);
 
   --shadow-xs: 0 0.0625rem 0.125rem color-mix(in srgb, #000 5%, transparent);
+  /* Raised controls (segmented pill, switch knob): a half-pixel contact edge
+     plus a short soft drop, the way AppKit lifts a selected segment. */
   --shadow-sm:
-    0 0 0 0.0625rem color-mix(in srgb, var(--dt-foreground) 6%, transparent),
-    0 0.125rem 0.5rem color-mix(in srgb, #000 4%, transparent);
+    0 0 0 0.03125rem color-mix(in srgb, #000 6%, transparent),
+    0 0.0625rem 0.1875rem color-mix(in srgb, #000 12%, transparent),
+    0 0.0625rem 0.0625rem color-mix(in srgb, #000 4%, transparent);
+  /* Menus and popovers: a hairline ring and one wide, low-contrast drop, so a
+     list floats like an NSMenu instead of sitting in a framed box. */
   --shadow-md:
-    0 0 0 0.0625rem color-mix(in srgb, var(--dt-foreground) 8%, transparent),
-    0 0.25rem 1rem color-mix(in srgb, #000 8%, transparent),
-    0 1rem 2rem -1.5rem color-mix(in srgb, #000 18%, transparent);
-  /* Soft floating shadow for borderless modals/overlays. Single top light
-     source: every layer is centered (x=0) and cast downward, with negative
-     spread that grows with the blur so each layer is pulled horizontally inward
-     — the shadow pools below the panel instead of bleeding out every side.
-     Layered (contact → ambient) for a smooth, natural falloff. */
+    0 0 0 0.03125rem color-mix(in srgb, #000 12%, transparent),
+    0 0.125rem 0.375rem color-mix(in srgb, #000 6%, transparent),
+    0 0.625rem 1.75rem color-mix(in srgb, #000 14%, transparent);
+  /* Soft floating shadow for borderless modals/overlays: a sheet's elevation.
+     Single top light source, centered and cast downward; the wide ambient
+     layer pools below the panel the way a macOS window shadow does. */
   --shadow-nous:
-    0 0.125rem 0.25rem -0.125rem color-mix(in srgb, #000 7%, transparent),
-    0 0.5rem 0.75rem -0.375rem color-mix(in srgb, #000 6%, transparent),
-    0 1.25rem 1.75rem -0.875rem color-mix(in srgb, #000 6%, transparent),
-    0 2.25rem 3rem -1.75rem color-mix(in srgb, #000 0%, transparent);
+    0 0.0625rem 0.1875rem color-mix(in srgb, #000 6%, transparent),
+    0 0.5rem 1.25rem -0.25rem color-mix(in srgb, #000 10%, transparent),
+    0 1.5rem 3.5rem -0.5rem color-mix(in srgb, #000 18%, transparent);
   /* Hairline border paired with --shadow-nous on borderless overlays.
      currentColor resolves per-element, so it adapts to text color/theme. */
-  --stroke-nous: color-mix(in srgb, currentColor 3%, transparent);
+  --stroke-nous: color-mix(in srgb, currentColor 8%, transparent);
   --shadow-lg:
     inset 0 0.0625rem 0 color-mix(in srgb, #fff 28%, transparent),
     0 0 0 0.0625rem color-mix(in srgb, var(--dt-foreground) 8%, transparent),
@@ -408,6 +410,9 @@
        mode, nudged down in dark so a widget settles into the transcript
        instead of glowing above it (see the `.dark` override). */
     --ui-widget-surface-background: var(--ui-bg-editor);
+    /* Fenced code slabs (CodeCard). Must stay opaque: the expandable fade
+       paints from it. */
+    --ui-code-background: var(--ui-bg-editor);
     --ui-chat-bubble-background: color-mix(
       in srgb,
       var(--theme-bubble-seed) var(--theme-mix-bubble),
@@ -494,11 +499,14 @@
     --dt-spacing-mul: 1;
 
     --radius: 0.75rem;
-    /* Effective value everywhere: the chat backdrop used to force 0.2 onto the
-       root element at runtime (an ungated leva slider default), so this 0.6
-       only ever applied to the windows that don't mount the backdrop. Pinned
-       to the value the app actually renders at. */
-    --radius-scalar: 0.2;
+    /* Scales every `rounded-{sm…4xl}` step. 0.6 lands the ladder on the macOS
+       continuous-corner rhythm: md = 6px (push buttons, fields, sidebar rows),
+       lg ≈ 7px, xl ≈ 10px (menus, popovers), 2xl ≈ 14px (dialogs, composer). */
+    --radius-scalar: 0.6;
+    /* Fixed radii for the shared controls (Button, Input/Select/Textarea,
+       menu rows) — they read as one family whatever the scalar does. */
+    --radius-control: 0.375rem;
+    --radius-menu-item: 0.3125rem;
 
     /* Space under last message vs overlay composer — driven by the measured composer DOCK height (see
        composer/index.tsx), which covers the micro-action strip, the status stack, the composer, and the
@@ -588,6 +596,13 @@
     --sidebar-ring: var(--dt-ring);
     --sidebar-edge-border: color-mix(in srgb, var(--ui-base) 7.5%, transparent);
     --chrome-action-hover: var(--ui-control-hover-background);
+    /* Highlighted row in a floating list (DropdownMenu, ContextMenu, Select,
+       cmdk pickers). Skins choose: a quiet wash here, the accent bar under
+       Cupertino. */
+    --ui-menu-highlight-background: var(--ui-control-active-background);
+    --ui-menu-highlight-foreground: var(--ui-text-primary);
+    /* The Switch knob: white in both appearances, like the system control. */
+    --ui-control-knob: #ffffff;
 
     --midground: var(--dt-midground);
     --background: var(--dt-background);
@@ -633,6 +648,63 @@
        touch — still clearly a surface, no longer the brightest thing in the
        transcript. Derived from the card so every skin follows its own seed. */
     --ui-widget-surface-background: color-mix(in srgb, var(--ui-bg-editor) 88%, #000);
+  }
+
+  /* ── Cupertino (themes/presets.ts) ─────────────────────────────────────────
+     The macOS system look. Other skins tint every fill and hairline with their
+     accent; AppKit's are neutral, so this skin derives them from the label
+     color alone (the systemFill / separator ladder), paints its seeds without
+     the neutral-chrome mix, and keeps the accent for what the system uses it
+     for: selection, focus, the highlighted menu row, the primary action.
+     Surface tokens that window glass rewrites (--ui-*-surface-background) are
+     left alone, so glass keeps working on top. */
+  :root[data-hermes-theme='cupertino'] {
+    --ui-bg-chrome: var(--theme-background-seed);
+    --ui-bg-sidebar: var(--theme-sidebar-seed);
+    --ui-bg-editor: var(--theme-card-seed);
+    --ui-bg-elevated: var(--theme-elevated-seed);
+    --ui-bg-input: var(--theme-card-seed);
+    --ui-bg-card: color-mix(in srgb, var(--ui-base) 4%, transparent);
+    --ui-bg-primary: rgb(120 120 128 / 0.2);
+    --ui-bg-secondary: rgb(120 120 128 / 0.16);
+    --ui-bg-tertiary: rgb(118 118 128 / 0.12);
+    --ui-bg-quaternary: rgb(116 116 128 / 0.08);
+    --ui-bg-quinary: rgb(116 116 128 / 0.05);
+    --ui-row-hover-background: color-mix(in srgb, var(--ui-base) 4%, transparent);
+    --ui-row-active-background: color-mix(in srgb, var(--ui-base) 8%, transparent);
+    --ui-control-hover-background: color-mix(in srgb, var(--ui-base) 5%, transparent);
+    --ui-control-active-background: color-mix(in srgb, var(--ui-base) 9%, transparent);
+    --ui-stroke-primary: color-mix(in srgb, var(--ui-base) 16%, transparent);
+    --ui-stroke-secondary: color-mix(in srgb, var(--ui-base) 11%, transparent);
+    --ui-stroke-tertiary: color-mix(in srgb, var(--ui-base) 8%, transparent);
+    --ui-stroke-quaternary: color-mix(in srgb, var(--ui-base) 5%, transparent);
+    /* Only the user's turn wears the filled systemGray6 bubble; the shared
+       raised-card surface (--ui-chat-bubble-background: overlays, boot cards)
+       stays near-white. */
+    --dt-user-bubble: color-mix(in srgb, var(--theme-bubble-seed) var(--user-bubble-keep, 100%), transparent);
+    --ui-selection-background: color-mix(in srgb, var(--theme-primary) 24%, transparent);
+    --ui-code-background: color-mix(in srgb, var(--ui-base) 4%, var(--theme-card-seed));
+    --ui-menu-highlight-background: var(--theme-primary);
+    --ui-menu-highlight-foreground: #fff;
+    --dt-input-border: 16%;
+  }
+
+  :root.dark[data-hermes-theme='cupertino'] {
+    --ui-bg-primary: rgb(120 120 128 / 0.32);
+    --ui-bg-secondary: rgb(120 120 128 / 0.26);
+    --ui-bg-tertiary: rgb(118 118 128 / 0.2);
+    --ui-bg-quaternary: rgb(118 118 128 / 0.14);
+    --ui-bg-quinary: rgb(118 118 128 / 0.08);
+    --ui-row-hover-background: color-mix(in srgb, var(--ui-base) 6%, transparent);
+    --ui-row-active-background: color-mix(in srgb, var(--ui-base) 11%, transparent);
+    --ui-control-hover-background: color-mix(in srgb, var(--ui-base) 8%, transparent);
+    --ui-control-active-background: color-mix(in srgb, var(--ui-base) 12%, transparent);
+    --ui-stroke-primary: color-mix(in srgb, var(--ui-base) 20%, transparent);
+    --ui-stroke-secondary: color-mix(in srgb, var(--ui-base) 14%, transparent);
+    --ui-stroke-tertiary: color-mix(in srgb, var(--ui-base) 10%, transparent);
+    --ui-stroke-quaternary: color-mix(in srgb, var(--ui-base) 6%, transparent);
+    --ui-selection-background: color-mix(in srgb, var(--theme-primary) 38%, transparent);
+    --dt-input-border: 12%;
   }
 
   /* ── Window glass (Settings → Appearance → Window Translucency: Glass) ──
@@ -1434,15 +1506,24 @@ button {
    attribute selectors out-specify the Tailwind utilities and silently override
    the variants. */
 
+/* Floating lists are vibrant, like an NSMenu: a thinner fill over a wide,
+   saturating blur, so what is behind the menu tints it without competing
+   with it. Dialogs keep a near-opaque fill (they hold forms and prose) and
+   the sheet shadow. */
 [data-slot='dropdown-menu-content'],
 [data-slot='select-content'],
 [data-slot='dialog-content'],
 [data-slot='thread-timeline-popover'] {
   border-color: var(--ui-stroke-secondary);
-  background: color-mix(in srgb, var(--ui-bg-elevated) 96%, transparent);
+  background: color-mix(in srgb, var(--ui-bg-elevated) 88%, transparent);
   box-shadow: var(--shadow-md);
-  backdrop-filter: blur(0.75rem) saturate(1.08);
-  -webkit-backdrop-filter: blur(0.75rem) saturate(1.08);
+  backdrop-filter: blur(1.25rem) saturate(1.8);
+  -webkit-backdrop-filter: blur(1.25rem) saturate(1.8);
+}
+
+[data-slot='dialog-content'] {
+  background: color-mix(in srgb, var(--ui-bg-elevated) 96%, transparent);
+  box-shadow: var(--shadow-nous);
 }
 
 /* Invisible dialog shells (the image lightbox). The rule above paints the
@@ -1456,11 +1537,50 @@ button {
   -webkit-backdrop-filter: none;
 }
 
-[data-slot='dropdown-menu-item']:focus,
-[data-slot='dropdown-menu-checkbox-item']:focus,
-[data-slot='dropdown-menu-radio-item']:focus {
-  background: var(--ui-bg-tertiary);
-  color: var(--ui-text-primary);
+/* The highlighted row of every floating list, in one place: Radix menus and
+   selects take real focus and set data-highlighted, an open submenu keeps its
+   trigger lit, and cmdk rows mark data-selected while focus stays in the
+   input. Skins pick the colors through --ui-menu-highlight-*; destructive rows
+   keep their own red wash from the item variant. */
+:is(
+    [data-slot='dropdown-menu-item'],
+    [data-slot='dropdown-menu-checkbox-item'],
+    [data-slot='dropdown-menu-radio-item'],
+    [data-slot='dropdown-menu-sub-trigger'],
+    [data-slot='context-menu-item'],
+    [data-slot='context-menu-checkbox-item'],
+    [data-slot='context-menu-sub-trigger'],
+    [data-slot='select-item']
+  ):not([data-variant='destructive']):is(:focus, [data-highlighted], [data-slot$='sub-trigger'][data-state='open']),
+[data-slot='command-item'][data-selected='true'] {
+  background: var(--ui-menu-highlight-background);
+  color: var(--ui-menu-highlight-foreground);
+}
+
+/* Under an accent highlight the whole row reverses, as an NSMenu item does:
+   secondary text, glyphs and shortcut hints take the row's foreground instead
+   of staying gray on blue. */
+:root[data-hermes-theme='cupertino']
+  :is(
+    [data-slot='dropdown-menu-item'],
+    [data-slot='dropdown-menu-checkbox-item'],
+    [data-slot='dropdown-menu-radio-item'],
+    [data-slot='dropdown-menu-sub-trigger'],
+    [data-slot='context-menu-item'],
+    [data-slot='context-menu-checkbox-item'],
+    [data-slot='context-menu-sub-trigger'],
+    [data-slot='select-item']
+  ):not([data-variant='destructive']):is(:focus, [data-highlighted], [data-slot$='sub-trigger'][data-state='open'])
+  *,
+:root[data-hermes-theme='cupertino'] [data-slot='command-item'][data-selected='true'] * {
+  color: inherit;
+
+  /* Key caps take Kbd's `inverted` surface (currentColor-mixed) on the bar. */
+  &[data-slot='kbd'] {
+    border-color: color-mix(in srgb, currentColor 24%, transparent);
+    background-color: color-mix(in srgb, currentColor 16%, transparent);
+    box-shadow: none;
+  }
 }
 
 input,
@@ -1561,12 +1681,14 @@ code {
 }
 
 /* `[data-state='open']` keeps the trigger looking focused while its dropdown is
-   open — Radix moves focus into the list, so the trigger itself loses :focus. */
+   open — Radix moves focus into the list, so the trigger itself loses :focus.
+   Focus is the accent ring plus a soft outer halo, the AppKit focus ring; it
+   replaces the resting inset, and box-shadow costs no layout. */
 .desktop-input-chrome:focus,
 .desktop-input-chrome:focus-within,
 .desktop-input-chrome[data-state='open'] {
-  border-color: var(--dt-composer-ring);
-  box-shadow: none;
+  border-color: var(--dt-ring);
+  box-shadow: 0 0 0 0.1875rem color-mix(in srgb, var(--dt-ring) 28%, transparent);
   outline: none;
 }
 
@@ -2006,6 +2128,15 @@ body.guest-pointer-lock :is(webview, iframe) {
   letter-spacing: 0.08em;
 }
 
+/* Cupertino sets the lettering the way a system app titles an empty state:
+   in the label color rather than the accent, and capped at a headline size
+   instead of spanning the whole column. */
+:root[data-hermes-theme='cupertino'] .wordmark {
+  --fit-max: 4.25rem;
+  color: var(--ui-text-primary);
+  mix-blend-mode: normal;
+}
+
 .fit-text > [aria-hidden] {
   visibility: hidden;
 }
@@ -2134,6 +2265,14 @@ body.guest-pointer-lock :is(webview, iframe) {
 
 [data-slot='composer-surface'] {
   border-color: var(--ui-stroke-secondary) !important;
+}
+
+/* Cupertino floats the composer the way Messages does: a contact edge plus a
+   short, soft drop under the field. HUD mode keeps its own (!important) edge. */
+:root[data-hermes-theme='cupertino'] [data-slot='composer-surface'] {
+  box-shadow:
+    0 0.0625rem 0.125rem color-mix(in srgb, #000 4%, transparent),
+    0 0.5rem 1.5rem -0.5rem color-mix(in srgb, #000 12%, transparent);
 }
 
 [data-slot='composer-fade'] {

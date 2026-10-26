@@ -177,6 +177,88 @@ export const nousTheme: DesktopTheme = {
   }
 }
 
+/**
+ * Cupertino — the macOS system look, and the Desktop default. Seeds are
+ * AppKit's: system blue (#007AFF / #0A84FF), the label and separator grays,
+ * the Notes/Mail sidebar against a white (or #1E1E1E) content column, and a
+ * filled systemGray6 bubble instead of an outlined one. The neutral fill and
+ * hairline ladder that makes it read as native lives in styles.css under
+ * `:root[data-hermes-theme='cupertino']`; the palette here only seeds it.
+ *
+ * Type is the system face first (SF Pro on a Mac, with Chromium picking the
+ * Text/Display optical size), and code is SF Mono → Menlo before the bundled
+ * JetBrains Mono, as in Xcode.
+ */
+export const cupertinoTheme: DesktopTheme = {
+  name: 'cupertino',
+  label: 'Cupertino',
+  description: 'macOS system colors, SF typography',
+  colors: {
+    background: '#ffffff',
+    foreground: '#1d1d1f',
+    card: '#ffffff',
+    cardForeground: '#1d1d1f',
+    muted: '#f2f2f7',
+    mutedForeground: '#6e6e73',
+    popover: '#ffffff',
+    popoverForeground: '#1d1d1f',
+    primary: '#007aff',
+    primaryForeground: '#ffffff',
+    secondary: '#ebf4ff',
+    secondaryForeground: '#1d1d1f',
+    accent: '#e5f0ff',
+    accentForeground: '#1d1d1f',
+    border: '#d9d9de',
+    input: '#ffffff',
+    ring: '#007aff',
+    midground: '#007aff',
+    midgroundForeground: '#ffffff',
+    composerRing: '#8e8e93',
+    destructive: '#ff3b30',
+    destructiveForeground: '#ffffff',
+    sidebarBackground: '#f5f5f7',
+    sidebarBorder: '#e3e3e8',
+    userBubble: '#f2f2f7',
+    userBubbleBorder: '#f2f2f7'
+  },
+  darkColors: {
+    background: '#1e1e1e',
+    foreground: '#f5f5f7',
+    card: '#262628',
+    cardForeground: '#f5f5f7',
+    muted: '#2c2c2e',
+    mutedForeground: '#98989d',
+    popover: '#2a2a2c',
+    popoverForeground: '#f5f5f7',
+    primary: '#0a84ff',
+    primaryForeground: '#ffffff',
+    secondary: '#1c2a39',
+    secondaryForeground: '#f5f5f7',
+    accent: '#1a2a3d',
+    accentForeground: '#f5f5f7',
+    border: '#3a3a3c',
+    input: '#1e1e1e',
+    ring: '#0a84ff',
+    midground: '#0a84ff',
+    midgroundForeground: '#ffffff',
+    composerRing: '#8e8e93',
+    destructive: '#ff453a',
+    destructiveForeground: '#ffffff',
+    sidebarBackground: '#28282a',
+    sidebarBorder: '#3a3a3c',
+    userBubble: '#2c2c2e',
+    userBubbleBorder: '#2c2c2e'
+  },
+  typography: {
+    fontSans:
+      '-apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", "Segoe UI", system-ui, sans-serif, ' +
+      EMOJI_FALLBACK,
+    fontMono: `"SF Mono", SFMono-Regular, Menlo, ${SYSTEM_MONO}`
+  },
+  terminal: nousTheme.terminal,
+  darkTerminal: nousTheme.darkTerminal
+}
+
 /** Catppuccin — Latte in light, Mocha in dark (Catppuccin.catppuccin-vsc). */
 export const catppuccinTheme: DesktopTheme = {
   name: 'catppuccin',
@@ -442,6 +524,7 @@ export const slateTheme: DesktopTheme = {
 }
 
 export const BUILTIN_THEMES: Record<string, DesktopTheme> = {
+  cupertino: cupertinoTheme,
   nous: nousTheme,
   github: githubTheme,
   catppuccin: catppuccinTheme,
@@ -459,7 +542,7 @@ export const BUILTIN_THEMES: Record<string, DesktopTheme> = {
 export const BUILTIN_THEME_LIST = Object.values(BUILTIN_THEMES)
 
 /** Skin used when nothing is persisted or the persisted name is retired. */
-export const DEFAULT_SKIN_NAME = 'nous'
+export const DEFAULT_SKIN_NAME = 'cupertino'
 
 /** Names that no longer resolve to a skin of their own. A stored pick of one
  *  falls back to DEFAULT_SKIN_NAME, and a cached backend theme under one is

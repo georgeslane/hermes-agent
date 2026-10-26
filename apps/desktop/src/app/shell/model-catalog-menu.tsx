@@ -1,12 +1,5 @@
 import type { ModelOptionProvider, ModelOptionsResult, ModelPricing } from '@hermes/shared'
-import {
-  DEFAULT_REASONING_EFFORT,
-  planBlocks,
-  sectionAt,
-  splitRecommended,
-  usageLevel,
-  usageTag
-} from '@hermes/shared'
+import { DEFAULT_REASONING_EFFORT, planBlocks, sectionAt, splitRecommended, usageLevel, usageTag } from '@hermes/shared'
 import { useStore } from '@nanostores/react'
 import { useQuery } from '@tanstack/react-query'
 import {
@@ -827,7 +820,7 @@ export function ModelCatalogMenu({
                   group.families.map((family, familyIdx) => (
                     <Fragment key={`${group.provider.slug}:${family.id}`}>
                       {!search && sectionTitle(group, familyIdx, copyPicker) ? (
-                        <DropdownMenuLabel className="px-2 pb-0.5 pt-1.5 text-[0.6rem] font-medium uppercase tracking-wide text-(--ui-text-tertiary)">
+                        <DropdownMenuLabel className="px-2 pb-0.5 pt-1.5 text-[0.6875rem] font-medium text-(--ui-text-tertiary)">
                           {sectionTitle(group, familyIdx, copyPicker)}
                         </DropdownMenuLabel>
                       ) : null}
@@ -1227,8 +1220,7 @@ function caretAtEnd(input: HTMLInputElement): boolean {
 const LOCAL_PROVIDER_SLUG = 'llamacpp'
 
 // Heading for every row group in the list (Favorites, providers, downloads).
-const catalogGroupLabel =
-  'px-2 pb-0.5 pt-0.5 text-[0.625rem] font-semibold uppercase tracking-wider text-(--ui-text-secondary)'
+const catalogGroupLabel = 'px-2 pb-0.5 pt-0.5 text-[0.6875rem] font-semibold text-(--ui-text-secondary)'
 
 // A provider inside a mixed Favorites section: the group heading's ink, set
 // in normal case and indented to the model names it labels, so it reads as
@@ -1451,7 +1443,10 @@ function nousPricingPoll(data: ModelOptionsResult | undefined, updates: number):
 // current-model pin above, so a pinned custom model lands under "Other models" instead of taking the
 // first pick's "Recommended" heading.
 function recommendedFirst(provider: ModelOptionProvider, families: ModelFamily[]): ModelFamily[] {
-  const split = splitRecommended(provider, families.map(family => family.id))
+  const split = splitRecommended(
+    provider,
+    families.map(family => family.id)
+  )
 
   if (!split) {
     return families

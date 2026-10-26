@@ -8,15 +8,16 @@ import { cn } from '@/lib/utils'
 // Text+icon actions underline the label on hover, not the glyph.
 const TEXT_ACTION_ICON = '[&_.codicon]:no-underline [&_svg]:no-underline'
 
-// Text buttons are square (no radius) and sized by padding + line-height — no
-// fixed heights — so they stay snug and scale with content. Only icon buttons
-// (inherently square) carry the shared 4px radius.
+// Sized by padding + line-height — no fixed heights — so buttons stay snug and
+// scale with content. Every box shares the control radius (6px, the AppKit
+// push-button corner); inline/link sizes have no box to round.
 const buttonVariants = cva(
-  "inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-[2.5px] text-xs leading-4 font-medium whitespace-nowrap shadow-none transition-all duration-100 outline-none focus-visible:border-ring focus-visible:ring-[0.1875rem] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-default disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-3.5",
+  "inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-(--radius-control) text-xs leading-4 font-medium whitespace-nowrap shadow-none transition-all duration-100 outline-none focus-visible:border-ring focus-visible:ring-[0.1875rem] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-default disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-3.5",
   {
     variants: {
       variant: {
-        default: 'bg-primary text-primary-foreground hover:bg-primary/90',
+        default:
+          'bg-primary text-primary-foreground shadow-[inset_0_0.5px_0_color-mix(in_srgb,#fff_22%,transparent),0_0.5px_1px_color-mix(in_srgb,#000_14%,transparent)] hover:bg-primary/90 active:bg-primary/80',
         destructive:
           'bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:bg-destructive/60 dark:focus-visible:ring-destructive/40',
         // Quiet action — transparent fill with a 1.5px inset ring (no layout-shifting border).
@@ -56,13 +57,13 @@ const buttonVariants = cva(
         // Status-stack headers, table footers — 12px text actions beside a label.
         micro:
           "h-auto gap-0.5 px-1 py-0 text-xs leading-4 font-normal has-[>svg]:px-0.5 [&_svg:not([class*='size-'])]:size-3",
-        icon: 'size-9 rounded-[4px]',
-        'icon-xs': "size-6 rounded-[4px] [&_svg:not([class*='size-'])]:size-3",
-        'icon-sm': 'size-8 rounded-[4px]',
-        'icon-lg': 'size-10 rounded-[4px]',
+        icon: 'size-9',
+        'icon-xs': "size-6 [&_svg:not([class*='size-'])]:size-3",
+        'icon-sm': 'size-8',
+        'icon-lg': 'size-10',
         grip: 'h-4 w-12 rounded-full p-0',
         'icon-titlebar':
-          'titlebar-icon-button h-(--titlebar-control-height) w-(--titlebar-control-size) rounded-[4px] [&_svg:not([class*="size-"])]:size-(--titlebar-icon-size)'
+          'titlebar-icon-button h-(--titlebar-control-height) w-(--titlebar-control-size) [&_svg:not([class*="size-"])]:size-(--titlebar-icon-size)'
       }
     },
     compoundVariants: [
