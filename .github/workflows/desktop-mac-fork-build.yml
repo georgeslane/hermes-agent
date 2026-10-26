@@ -1,0 +1,117 @@
+name: Desktop macOS build (fork)
+
+# Builds the bundled Hermes Agent.app for Apple Silicon from this branch and
+# uploads the DMG/ZIP as a workflow artifact, so the fork's desktop changes can
+# be installed over a stock copy. Fork-only: upstream's signed, notarized
+# packages come from desktop-bundled-release.yml.
+#
+# The build takes the stable product identity (same app ID, name and local
+# state as the installed app) through a LOCAL claim tag for the next patch
+# after upstream's newest stable tag, the same way scripts/build-bundle.ps1
+# -Store does; the tag is never pushed. Without signing credentials the app is
+# unsigned or ad-hoc signed and not notarized, and its baked update feed is
+# this fork's (empty) GitHub releases, so it never self-updates back to stock.
+
+on:
+  push:
+    branches: [claude/ui-polish-apple-style-w42f1t]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-mac-fork-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: bundled darwin-arm64 (unsigned)
+    if: github.repository == 'georgeslane/hermes-agent'
+    runs-on: macos-15
+    timeout-minutes: 180
+    steps:
+      - name: Disable Spotlight indexing for DMG staging
+        run: sudo mdutil -a -i off || true
+
+      - uses: actions/checkout@f548e57e544e1ff5a4c46bf1e1b8685f8e4a348a # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+
+      - name: Select Xcode 26 for the macOS 26 layered icon when present
+        # Without actool >= 26 the config packages the .icns alone
+        # (apps/desktop/scripts/mac-icon.cjs); that is acceptable here.
+        run: |
+          xcode="$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1 || true)"
+          if [ -n "$xcode" ]; then
+            echo "DEVELOPER_DIR=$xcode/Contents/Developer" >> "$GITHUB_ENV"
+            echo "using $xcode"
+          fi
+
+      - name: Build and package
+        timeout-minutes: 150
+        env:
+          PYTHONUTF8: '1'
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: |
+          set -euo pipefail
+          ulimit -n 16384 2>/dev/null || true
+          sha="$(git rev-parse HEAD)"
+          latest="$(git ls-remote --tags https://github.com/NousResearch/hermes-agent 'refs/tags/v*' \
+            | sed -n 's#.*refs/tags/v\([0-9]\{1,3\}\.[0-9]\{1,\}\.[0-9]\{1,\}\)$#\1#p' \
+            | sort -t. -k1,1n -k2,2n -k3,3n | tail -1)"
+          test -n "$latest"
+          IFS=. read -r major minor patch <<<"$latest"
+          version="$major.$minor.$((patch + 1))"
+          claim="rc.900-v$version"
+          git -c user.name=hermes-local-build -c user.email=local-build@invalid -c tag.gpgSign=false \
+            tag -a "$claim" -m 'local build claim' "$sha"
+          export RELEASE_CLAIM_TAG="$claim"
+          export RELEASE_CLAIM_OBJECT="$(git rev-parse "refs/tags/$claim")"
+          export HERMES_PAYLOAD_TAG="v$version" HERMES_PAYLOAD_VERSION="$version" HERMES_DESKTOP_VARIANT=bundled
+          echo "building $sha as v$version (upstream latest v$latest, local claim $claim)"
+          python3 scripts/bundles/desktop.py --tag "v$version" --release-commit "$sha" --variant bundled --clean
+          echo "HERMES_FORK_VERSION=$version" >> "$GITHUB_ENV"
+
+      - name: Audit bundle architecture
+        run: node apps/desktop/scripts/audit-bundle-arch.mjs --arch=arm64 --root=apps/desktop/release
+
+      - name: Ensure a valid (ad-hoc) code signature
+        # Apple Silicon refuses to run code whose signature no longer matches
+        # its bundle. If packaging left the app unsigned or its seal broken,
+        # ad-hoc sign it and rebuild the DMG/ZIP from the fixed bundle.
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          apps=(apps/desktop/release/mac-arm64/*.app)
+          test ${#apps[@]} -eq 1
+          app="${apps[0]}"
+          if codesign --verify --deep --strict --verbose=2 "$app"; then
+            echo "signature valid: $app"
+            exit 0
+          fi
+          codesign --force --deep --sign - "$app"
+          codesign --verify --deep --strict --verbose=2 "$app"
+          name="$(basename "$app" .app)"
+          rm -f apps/desktop/release/*.dmg apps/desktop/release/*.zip
+          ditto -c -k --sequesterRsrc --keepParent "$app" "apps/desktop/release/HermesBundled-$HERMES_FORK_VERSION-mac-arm64.zip"
+          stage="$RUNNER_TEMP/dmg"
+          mkdir -p "$stage"
+          ditto "$app" "$stage/$name.app"
+          ln -s /Applications "$stage/Applications"
+          hdiutil create -volname "$name" -srcfolder "$stage" -ov -format UDZO \
+            "apps/desktop/release/HermesBundled-$HERMES_FORK_VERSION-mac-arm64.dmg"
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: Hermes-Agent-macOS-arm64-v${{ env.HERMES_FORK_VERSION }}-${{ github.sha }}
+          path: |
+            apps/desktop/release/*.dmg
+            apps/desktop/release/*.zip
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
